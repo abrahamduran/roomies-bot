@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  roomiesbot:
+    image: ${DOCKER_REGISTRY-}roomiesbot
+    build:
+      context: .
+      dockerfile: RoomiesBot/Dockerfile
