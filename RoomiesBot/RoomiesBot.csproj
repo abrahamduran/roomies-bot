@@ -31,5 +31,6 @@
     <Folder Include="Settings\" />
     <Folder Include="Persistence\" />
     <Folder Include="Services\" />
+    <Folder Include="arm64\" />
   </ItemGroup>
 </Project>
