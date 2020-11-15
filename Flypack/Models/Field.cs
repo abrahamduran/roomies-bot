@@ -1,8 +1,10 @@
 ﻿using System;
 
-namespace Flypack
+namespace Flypack.Models
 {
-    public class Class1
+    public struct Field
     {
+        public string Name { get; set; }
+        public string Value { get; set; }
     }
 }
