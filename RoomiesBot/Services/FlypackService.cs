@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -19,7 +19,8 @@ namespace RoomiesBot.Services
         private readonly ILogger<FlypackService> _logger;
         private readonly FlypackScrapper _flypack;
         private readonly FlypackSettings _settings;
-        private Dictionary<string, Package> _lastPulledPackages = new Dictionary<string, Package>();
+        private List<Package> _currentPackages = new List<Package>();
+        private Dictionary<string, Package> _previousPackages = new Dictionary<string, Package>();
 
         public FlypackService(ILogger<FlypackService> logger, FlypackScrapper flypack, IOptions<FlypackSettings> options)
         {
@@ -63,9 +64,10 @@ namespace RoomiesBot.Services
 
         private List<Package> ListPackages(string path)
         {
-            var packages = _flypack.GetPackages(path);
-            var updatedPackages = packages.Except(_lastPulledPackages.Values).ToList();
-            _lastPulledPackages = packages.ToDictionary(x => x.Identifier);
+            var newPackages = _flypack.GetPackages(path);
+            var updatedPackages = newPackages.Except(_currentPackages).ToList();
+            _previousPackages = _currentPackages.ToDictionary(x => x.Identifier);
+            _currentPackages = newPackages.ToList();
 
             if (updatedPackages.Any())
                 _logger.LogInformation("Found {PackagesCount} new packages", updatedPackages.Count);
@@ -87,7 +89,7 @@ namespace RoomiesBot.Services
                 messages.Add($"*Description*: {description}");
                 messages.Add($"*Tracking*: {package.TrackingInformation}");
 
-                var previousStatus = _lastPulledPackages[package.Identifier].Status;
+                var previousStatus = _previousPackages[package.Identifier].Status;
                 if (previousStatus != package.Status)
                     messages.Add($"*Status*: {previousStatus.Description} → {package.Status.Description}, _{package.Status.Percentage}_");
                 else
