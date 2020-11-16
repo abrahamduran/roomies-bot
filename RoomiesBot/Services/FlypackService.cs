@@ -89,7 +89,9 @@ namespace RoomiesBot.Services
                 messages.Add($"*Description*: {description}");
                 messages.Add($"*Tracking*: {package.TrackingInformation}");
 
-                var previousStatus = _previousPackages[package.Identifier].Status;
+                var previousStatus = _previousPackages.ContainsKey(package.Identifier)
+                    ? _previousPackages[package.Identifier].Status
+                    : package.Status;
                 if (previousStatus != package.Status)
                     messages.Add($"*Status*: {previousStatus.Description} → {package.Status.Description}, _{package.Status.Percentage}_");
                 else
