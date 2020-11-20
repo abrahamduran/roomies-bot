@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -18,7 +18,7 @@ namespace Flypack
         private const string BASE_URL = "https://www.flypack.com.do";
         private readonly ScrapingBrowser _browser = new ScrapingBrowser();
 
-        public string Login(string username, string password)
+        public async Task<string> LoginAsync(string username, string password)
         {
             var data = new[] {
                 new Field() { Name = "EJECUTE", Value = "1" },
@@ -26,15 +26,15 @@ namespace Flypack
                 new Field() { Name = "text1", Value = username },
                 new Field() { Name = "text2", Value = password }
             };
-            var html = GetHtml($"{BASE_URL}/run.php", HttpVerb.Post, data, "application /x-www-form-urlencoded");
+            var html = await GetHtmlAsync($"{BASE_URL}/run.php", HttpVerb.Post, data, "application /x-www-form-urlencoded");
             var script = html.SelectSingleNode("//script").InnerText;
             var nextLocation = script.Replace("window.location='", "").Replace("';\r\n      ", "");
             return nextLocation;
         }
 
-        public IEnumerable<Package> GetPackages(string path)
+        public async Task<IEnumerable<Package>> GetPackagesAsync(string path)
         {
-            var html = GetHtml($"{BASE_URL}/{path}", HttpVerb.Get, null, null);
+            var html = await GetHtmlAsync($"{BASE_URL}/{path}", HttpVerb.Get, null, null);
             var rows = html.CssSelect("tbody > tr");
 
             var packages = new List<Package>();
@@ -63,9 +63,9 @@ namespace Flypack
             return packages;
         }
 
-        private HtmlNode GetHtml(string url, HttpVerb verb, Field[] data, string contentType)
+        private async Task<HtmlNode> GetHtmlAsync(string url, HttpVerb verb, Field[] data, string contentType)
         {
-            WebPage webpage = _browser.NavigateToPage(new Uri(url), verb, Serialize(data), contentType);
+            WebPage webpage = await _browser.NavigateToPageAsync(new Uri(url), verb, Serialize(data), contentType);
             return webpage.Html;
         }
 
