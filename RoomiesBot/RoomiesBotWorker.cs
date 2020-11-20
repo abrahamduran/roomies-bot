@@ -7,6 +7,8 @@ using Microsoft.Extensions.Options;
 using RoomiesBot.Services;
 using Telegram.Bot;
 using Telegram.Bot.Args;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using TelegramSettings = RoomiesBot.Settings.Telegram;
 
 namespace RoomiesBot
@@ -28,9 +30,9 @@ namespace RoomiesBot
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-
             //_client.OnMessage += OnMessage;
-            //_client.StartReceiving(cancellationToken: stoppingToken);
+            _client.OnUpdate += OnUpdate;
+            _client.StartReceiving(cancellationToken: stoppingToken);
             await _flypackService.StartAsync(_client, _settings.ChannelIdentifier, stoppingToken);
 
             //return Task.CompletedTask;
@@ -39,7 +41,7 @@ namespace RoomiesBot
         public override Task StopAsync(CancellationToken cancellationToken)
         {
             _client.StopReceiving();
-
+            _flypackService.StopAsync();
             return base.StopAsync(cancellationToken);
         }
 
@@ -52,9 +54,27 @@ namespace RoomiesBot
 
                 await _client.SendTextMessageAsync(
                   chatId: e.Message.Chat,
-                  text: "You said:\n" + e.Message.Text
+                  text: "You said:\n" + e.Message.Text + "\n" + DateTime.Now.AddHours(-4)
                 );
             }
+        }
+
+        private async void OnUpdate(object sender, UpdateEventArgs e)
+        {
+            switch (e.Update.Type)
+            {
+                case UpdateType.ChannelPost:
+                    await AnswerChannelMessage(e.Update.ChannelPost);
+                    break;
+            }
+        }
+
+        private async Task AnswerChannelMessage(Message message)
+        {
+            _logger.LogDebug("Received a text message in channel {ChatId}", message.Chat.Id);
+            if (message.Chat.Id.ToString() != _settings.ChannelIdentifier) return;
+
+            await _flypackService.AnswerCommand(_client, message);
         }
         #endregion
     }
