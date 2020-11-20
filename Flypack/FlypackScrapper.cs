@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -36,6 +36,8 @@ namespace Flypack
         {
             var html = await GetHtmlAsync($"{BASE_URL}/{path}", HttpVerb.Get, null, null);
             var rows = html.CssSelect("tbody > tr");
+
+            if (!rows.Any()) return null;
 
             var packages = new List<Package>();
             foreach (var row in rows)
